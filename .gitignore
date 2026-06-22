@@ -20,3 +20,6 @@ desktop.ini
 .idea/
 .project
 .settings/
+
+# Databases
+data/processed/mutual_funds.db
