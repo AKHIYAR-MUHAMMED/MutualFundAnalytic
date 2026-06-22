@@ -16,15 +16,39 @@ def main():
     if not os.path.exists(fund_master_path) or not os.path.exists(nav_history_path):
         print("Error: fund_master.csv or nav_history.csv missing in data/processed/.")
         return
-        
+
+    # 1. Execute schema.sql to set up tables with primary/foreign keys
+    schema_path = "sql/schema.sql"
+    if os.path.exists(schema_path):
+        print("Executing schema.sql to set up tables and constraints...")
+        with open(schema_path, "r", encoding="utf-8") as f:
+            schema_sql = f.read()
+        with engine.connect() as conn:
+            # Drop existing tables to ensure clean loading of new data
+            conn.execute(text("DROP TABLE IF EXISTS nav_history;"))
+            conn.execute(text("DROP TABLE IF EXISTS fund_master;"))
+            
+            # Execute schema statements
+            for statement in schema_sql.split(";"):
+                if statement.strip():
+                    conn.execute(text(statement + ";"))
+            conn.commit()
+    
     df_master = pd.read_csv(fund_master_path)
     df_history = pd.read_csv(nav_history_path)
+
     
-    # Load into SQL database
-    print("Loading fund_master into database...")
-    df_master.to_sql("fund_master", con=engine, if_exists="replace", index=False)
-    print("Loading nav_history into database...")
-    df_history.to_sql("nav_history", con=engine, if_exists="replace", index=False)
+    # 2. Load into SQL database using append to respect constraints
+    if os.path.exists(schema_path):
+        print("Loading fund_master into database (append mode)...")
+        df_master.to_sql("fund_master", con=engine, if_exists="append", index=False)
+        print("Loading nav_history into database (append mode)...")
+        df_history.to_sql("nav_history", con=engine, if_exists="append", index=False)
+    else:
+        print("Loading fund_master into database (replace mode)...")
+        df_master.to_sql("fund_master", con=engine, if_exists="replace", index=False)
+        print("Loading nav_history into database (replace mode)...")
+        df_history.to_sql("nav_history", con=engine, if_exists="replace", index=False)
     print("Database loaded successfully.")
     
     # Verify by running a sample query
