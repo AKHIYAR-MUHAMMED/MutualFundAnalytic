@@ -22,4 +22,5 @@ desktop.ini
 .settings/
 
 # Databases
-data/processed/mutual_funds.db
+[Dd]ata/processed/mutual_funds.db
+*.db

@@ -10,11 +10,11 @@ def main():
     engine = create_engine(f"sqlite:///{db_path}")
     
     # Load CSV files
-    fund_master_path = "data/raw/fund_master.csv"
-    nav_history_path = "data/raw/nav_history.csv"
+    fund_master_path = "data/processed/fund_master.csv"
+    nav_history_path = "data/processed/nav_history.csv"
     
     if not os.path.exists(fund_master_path) or not os.path.exists(nav_history_path):
-        print("Error: fund_master.csv or nav_history.csv missing in data/raw/.")
+        print("Error: fund_master.csv or nav_history.csv missing in data/processed/.")
         return
         
     df_master = pd.read_csv(fund_master_path)

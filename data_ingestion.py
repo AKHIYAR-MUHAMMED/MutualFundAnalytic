@@ -1,6 +1,48 @@
 import os
 import glob
 import pandas as pd
+import numpy as np
+
+def check_nav_anomalies(df):
+    anomalies = []
+    if 'nav' in df.columns and 'date' in df.columns:
+        df_sorted = df.copy()
+        df_sorted['parsed_date'] = pd.to_datetime(df_sorted['date'], format='%d-%m-%Y')
+        
+        # Convert nav to numeric
+        df_sorted['nav'] = pd.to_numeric(df_sorted['nav'], errors='coerce')
+        df_sorted = df_sorted.dropna(subset=['nav'])
+        
+        # Group by scheme_code if present (e.g. in nav_history.csv)
+        if 'scheme_code' in df_sorted.columns:
+            for code, group in df_sorted.groupby('scheme_code'):
+                group_sorted = group.sort_values('parsed_date').reset_index(drop=True)
+                group_sorted['pct_change'] = group_sorted['nav'].pct_change()
+                large_changes = group_sorted[group_sorted['pct_change'].abs() > 0.50]
+                
+                for idx, row in large_changes.iterrows():
+                    prev_row = group_sorted.iloc[idx - 1]
+                    anomalies.append({
+                        "scheme_code": int(code),
+                        "date": row['date'],
+                        "prev_nav": float(prev_row['nav']),
+                        "current_nav": float(row['nav']),
+                        "pct_change": float(row['pct_change'])
+                    })
+        else:
+            df_sorted = df_sorted.sort_values('parsed_date').reset_index(drop=True)
+            df_sorted['pct_change'] = df_sorted['nav'].pct_change()
+            large_changes = df_sorted[df_sorted['pct_change'].abs() > 0.50]
+            
+            for idx, row in large_changes.iterrows():
+                prev_row = df_sorted.iloc[idx - 1]
+                anomalies.append({
+                    "date": row['date'],
+                    "prev_nav": float(prev_row['nav']),
+                    "current_nav": float(row['nav']),
+                    "pct_change": float(row['pct_change'])
+                })
+    return anomalies
 
 def load_and_inspect_datasets():
     csv_files = glob.glob("data/raw/*.csv")
@@ -40,11 +82,21 @@ def load_and_inspect_datasets():
             else:
                 print("  - No duplicate rows.")
                 
+            # Run NAV jumps check
+            nav_anomalies = check_nav_anomalies(df)
+            if nav_anomalies:
+                print("  - Extreme NAV jumps detected (potential anomalies):")
+                for anom in nav_anomalies:
+                    print(f"    * {anom['date']}: NAV shifted from {anom['prev_nav']} to {anom['current_nav']} ({anom['pct_change'] * 100:.2f}%)")
+            else:
+                print("  - No extreme NAV jumps.")
+                
             inspection_results[filename] = {
                 "shape": df.shape,
                 "dtypes": {k: str(v) for k, v in df.dtypes.items()},
                 "missing": missing_info,
-                "duplicates": duplicates
+                "duplicates": duplicates,
+                "anomalies": nav_anomalies
             }
         except Exception as e:
             print(f"Error loading {filename}: {e}")
@@ -131,15 +183,15 @@ def validate_amfi_codes():
         "missing_codes": list(missing_in_history)
     }
 
-def generate_report(inspection, master_info, validation):
+def generate_report(inspection, cleaned_inspection, master_info, validation):
     os.makedirs("reports", exist_ok=True)
     report_path = "reports/data_quality_summary.md"
     
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write("# Mutual Fund Data Ingestion Quality Report\n\n")
+        f.write("# Mutual Fund Data Ingestion & Quality Report\n\n")
         
-        f.write("## 1. Dataset Shape and Types\n\n")
-        f.write("| Dataset | Rows | Columns | Duplicates | Missing Values | Anomalies |\n")
+        f.write("## 1. Raw Dataset Properties\n\n")
+        f.write("| Dataset | Rows | Columns | Duplicates | Missing Values | Anomalies (Daily Return > 50%) |\n")
         f.write("| --- | --- | --- | --- | --- | --- |\n")
         
         for name, info in inspection.items():
@@ -150,6 +202,7 @@ def generate_report(inspection, master_info, validation):
             shape = info["shape"]
             dups = info["duplicates"]
             missing = info["missing"]
+            anoms = info["anomalies"]
             
             missing_str = ", ".join([f"{col}: {val}" for col, val in missing.items()]) if missing else "None"
             anomalies_str = []
@@ -157,13 +210,61 @@ def generate_report(inspection, master_info, validation):
                 anomalies_str.append(f"{dups} duplicates")
             if missing:
                 anomalies_str.append("missing values")
+            if anoms:
+                # Count distinct dates with anomalies
+                distinct_dates = len(set(a['date'] for a in anoms))
+                anomalies_str.append(f"{distinct_dates} extreme NAV jumps")
             
             f.write(f"| {name} | {shape[0]} | {shape[1]} | {dups} | {missing_str} | {', '.join(anomalies_str) if anomalies_str else 'None'} |\n")
             
         f.write("\n")
         
+        # Detailed anomalies section
+        f.write("## 2. Detailed Raw Data Anomalies Identified\n\n")
+        has_anoms = False
+        for name, info in inspection.items():
+            # Skip combined history file since it has cross-scheme anomalies in raw form
+            if name == 'nav_history.csv':
+                continue
+            if "anomalies" in info and info["anomalies"]:
+                has_anoms = True
+                f.write(f"### {name}:\n")
+                for anom in info["anomalies"]:
+                    f.write(f"- **{anom['date']}:** NAV shifted from `{anom['prev_nav']}` to `{anom['current_nav']}` (change of `{anom['pct_change'] * 100:.2f}%`). ")
+                    if abs(anom['pct_change']) > 90:
+                        f.write("This indicates a **100x decimal shift anomaly**.\n")
+                    elif anom['current_nav'] == 0.0 or anom['prev_nav'] == 0.0:
+                        f.write("This indicates a **zero NAV entry error**.\n")
+                    else:
+                        f.write("This indicates an extreme daily return jump.\n")
+        if not has_anoms:
+            f.write("No extreme anomalies detected in individual raw historical NAV files.\n\n")
+        f.write("\n")
+        
+        # Data Cleaning Verification section
+        f.write("## 3. Cleaned Datasets Verification (data/processed/)\n\n")
+        f.write("The raw anomalies were corrected and saved to the `data/processed/` folder for database ingestion. Below is the quality check on the cleaned files:\n\n")
+        f.write("| Cleaned Dataset | Rows | Columns | Remaining Anomalies | Actions Taken |\n")
+        f.write("| --- | --- | --- | --- | --- |\n")
+        
+        for name, info in cleaned_inspection.items():
+            shape = info["shape"]
+            anoms = info["anomalies"]
+            
+            action = "Checked / No action needed"
+            if name == 'axis_bluechip_119092.csv':
+                action = "Multiplied NAV entries before 30-08-2015 by 100 to fix 100x shift."
+            elif name == 'icici_bluechip_120503.csv':
+                action = "Interpolated zero-NAV on 07-04-2013 using neighboring entries."
+            elif name == 'nav_history.csv':
+                action = "Applied both 100x shift and zero-NAV corrections per scheme."
+                
+            f.write(f"| {name} | {shape[0]} | {shape[1]} | {len(anoms)} | {action} |\n")
+            
+        f.write("\n")
+        
         if master_info:
-            f.write("## 2. Fund Master Exploration\n\n")
+            f.write("## 4. Fund Master Exploration\n\n")
             f.write(f"- **Total Fund Houses:** {len(master_info['fund_houses'])}\n")
             f.write(f"- **Total Categories:** {len(master_info['categories'])}\n")
             f.write(f"- **Total Sub-categories:** {len(master_info['sub_categories'])}\n")
@@ -180,7 +281,7 @@ def generate_report(inspection, master_info, validation):
             f.write("\n")
             
         if validation:
-            f.write("## 3. AMFI Code Validation Results\n\n")
+            f.write("## 5. AMFI Code Validation Results\n\n")
             f.write(f"- **Unique scheme codes in `fund_master`:** {validation['master_unique_codes']}\n")
             f.write(f"- **Unique scheme codes in `nav_history`:** {validation['history_unique_codes']}\n")
             
@@ -196,11 +297,119 @@ def generate_report(inspection, master_info, validation):
                 
     print(f"Data quality report saved to {report_path}")
 
+def clean_and_save_datasets():
+    print("=" * 60)
+    print("Cleaning Datasets")
+    print("=" * 60)
+    
+    os.makedirs("data/processed", exist_ok=True)
+    csv_files = glob.glob("data/raw/*.csv")
+    cleaned_inspection = {}
+    
+    for filepath in csv_files:
+        filename = os.path.basename(filepath)
+        if filename in ['fund_master.csv', 'nav_history.csv']:
+            continue
+            
+        df = pd.read_csv(filepath)
+        df_clean = df.copy()
+        
+        # 100x shift correction for axis_bluechip_119092.csv (HDFC Money Market Fund)
+        if filename == 'axis_bluechip_119092.csv':
+            df_clean['nav'] = pd.to_numeric(df_clean['nav'], errors='coerce')
+            parsed_dates = pd.to_datetime(df_clean['date'], format='%d-%m-%Y')
+            cutoff_date = pd.to_datetime('30-08-2015', format='%d-%m-%Y')
+            mask = parsed_dates < cutoff_date
+            df_clean.loc[mask, 'nav'] = df_clean.loc[mask, 'nav'] * 100
+            print(f"  - Corrected 100x shift in {filename} for {mask.sum()} rows prior to 30-08-2015.")
+            
+        # Zero-NAV correction for icici_bluechip_120503.csv (Axis ELSS Tax Saver)
+        elif filename == 'icici_bluechip_120503.csv':
+            df_clean['nav'] = pd.to_numeric(df_clean['nav'], errors='coerce')
+            mask_zero = df_clean['nav'] == 0.0
+            if mask_zero.any():
+                df_clean.loc[mask_zero, 'nav'] = np.nan
+                df_clean['parsed_date'] = pd.to_datetime(df_clean['date'], format='%d-%m-%Y')
+                df_clean = df_clean.sort_values('parsed_date')
+                df_clean['nav'] = df_clean['nav'].interpolate(method='linear')
+                # Sort back to descending date to match raw format
+                df_clean = df_clean.sort_values('parsed_date', ascending=False).drop(columns=['parsed_date']).reset_index(drop=True)
+                print(f"  - Cleaned zero NAV anomaly in {filename} on 07-04-2013 by linear interpolation.")
+                
+        # Save cleaned file to data/processed
+        cleaned_path = f"data/processed/{filename}"
+        df_clean.to_csv(cleaned_path, index=False)
+        
+        # Verify if any anomalies remain
+        anoms = check_nav_anomalies(df_clean)
+        cleaned_inspection[filename] = {
+            "shape": df_clean.shape,
+            "anomalies": anoms
+        }
+        
+    # Clean nav_history.csv
+    nav_history_path = "data/raw/nav_history.csv"
+    if os.path.exists(nav_history_path):
+        df_hist = pd.read_csv(nav_history_path)
+        df_hist_clean = df_hist.copy()
+        df_hist_clean['nav'] = pd.to_numeric(df_hist_clean['nav'], errors='coerce')
+        
+        # Correct 100x shift for 119092
+        parsed_dates = pd.to_datetime(df_hist_clean['date'], format='%d-%m-%Y')
+        cutoff_date = pd.to_datetime('30-08-2015', format='%d-%m-%Y')
+        mask_119092 = (df_hist_clean['scheme_code'] == 119092) & (parsed_dates < cutoff_date)
+        df_hist_clean.loc[mask_119092, 'nav'] = df_hist_clean.loc[mask_119092, 'nav'] * 100
+        
+        # Correct zero-NAV for 120503
+        mask_120503_zero = (df_hist_clean['scheme_code'] == 120503) & (df_hist_clean['nav'] == 0.0)
+        if mask_120503_zero.any():
+            df_hist_clean.loc[mask_120503_zero, 'nav'] = np.nan
+            
+            # Interpolate per scheme
+            history_dfs = []
+            for code, group in df_hist_clean.groupby('scheme_code'):
+                group_sorted = group.copy()
+                group_sorted['parsed_date'] = pd.to_datetime(group_sorted['date'], format='%d-%m-%Y')
+                group_sorted = group_sorted.sort_values('parsed_date')
+                if code == 120503:
+                    group_sorted['nav'] = group_sorted['nav'].interpolate(method='linear')
+                group_sorted = group_sorted.drop(columns=['parsed_date'])
+                history_dfs.append(group_sorted)
+            df_hist_clean = pd.concat(history_dfs, ignore_index=True)
+            
+        cleaned_hist_path = "data/processed/nav_history.csv"
+        # Sort in descending order of date within each scheme to maintain parity
+        df_hist_clean['parsed_date'] = pd.to_datetime(df_hist_clean['date'], format='%d-%m-%Y')
+        df_hist_clean = df_hist_clean.sort_values(['scheme_code', 'parsed_date'], ascending=[True, False]).drop(columns=['parsed_date']).reset_index(drop=True)
+        df_hist_clean.to_csv(cleaned_hist_path, index=False)
+        print("  - Generated data/processed/nav_history.csv with clean historical data.")
+        
+        anoms = check_nav_anomalies(df_hist_clean)
+        cleaned_inspection['nav_history.csv'] = {
+            "shape": df_hist_clean.shape,
+            "anomalies": anoms
+        }
+        
+    # Copy fund_master to processed
+    fund_master_raw_path = "data/raw/fund_master.csv"
+    if os.path.exists(fund_master_raw_path):
+        df_master = pd.read_csv(fund_master_raw_path)
+        df_master.to_csv("data/processed/fund_master.csv", index=False)
+        print("  - Copied fund_master.csv to data/processed/fund_master.csv.")
+        cleaned_inspection['fund_master.csv'] = {
+            "shape": df_master.shape,
+            "anomalies": []
+        }
+        
+    return cleaned_inspection
+
 def main():
     inspection = load_and_inspect_datasets()
     master_info = explore_fund_master()
     validation = validate_amfi_codes()
-    generate_report(inspection, master_info, validation)
+    cleaned_inspection = clean_and_save_datasets()
+    generate_report(inspection, cleaned_inspection, master_info, validation)
 
 if __name__ == "__main__":
     main()
+
