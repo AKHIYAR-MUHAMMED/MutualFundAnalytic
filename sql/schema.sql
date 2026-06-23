@@ -1,4 +1,4 @@
--- Schema for Mutual Fund Database
+-- Schema for Mutual Fund Database(DB)
 
 CREATE TABLE IF NOT EXISTS fund_master (
     scheme_code INTEGER PRIMARY KEY,
