@@ -5,7 +5,7 @@ import numpy as np
 
 def check_nav_anomalies(df):
     anomalies = []
-    if 'nav' in df.columns and 'date' in df.columns:
+    if 'nav' in df.columns and 'date' in df.columns
         df_sorted = df.copy()
         df_sorted['parsed_date'] = pd.to_datetime(df_sorted['date'], format='%d-%m-%Y')
         
