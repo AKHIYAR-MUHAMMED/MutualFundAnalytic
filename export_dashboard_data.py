@@ -5,7 +5,7 @@ import numpy as np
 from sqlalchemy import create_engine
 
 def main():
-    db_path = "data/processed/mutual_funds.db"
+    db_path = "Data/processed/mutual_funds.db"
     if not os.path.exists(db_path):
         print("Error: Database mutual_funds.db not found.")
         return
@@ -32,7 +32,7 @@ def main():
     
     # Daily returns
     df_returns = df_pivot.pct_change().dropna()
-    rf_daily = 0.06 / 252  # 6% risk free rate
+    rf_daily = 0.06 / 365  # 6% risk free rate
     
     # Compute metrics
     metrics = []
@@ -55,10 +55,11 @@ def main():
         ann_ret = (cum_ret + 1) ** (1 / years) - 1 if years > 0 else 0
         
         daily_vol = df_returns[col].std()
-        ann_vol = daily_vol * np.sqrt(252)
+        ann_vol = daily_vol * np.sqrt(365)
         
         excess_returns = df_returns[col] - rf_daily
-        sharpe = (excess_returns.mean() / daily_vol) * np.sqrt(252) if daily_vol > 0 else 0
+        sharpe = (excess_returns.mean() / daily_vol) * np.sqrt(365) if daily_vol > 0 else 0
+
         
         running_max = df_pivot[col].cummax()
         drawdown = (df_pivot[col] / running_max) - 1
