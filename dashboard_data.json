@@ -8,8 +8,8 @@
       "category": "Debt Scheme",
       "sub_category": "Banking and PSU Fund",
       "risk_grade": "Moderate",
-      "cum_return": 2.44,
-      "ann_return": 0.19,
+      "cum_return": 2.56,
+      "ann_return": 0.2,
       "ann_volatility": 8.78,
       "sharpe_ratio": -0.62,
       "max_drawdown": -36.65
@@ -22,8 +22,8 @@
       "category": "Equity Scheme",
       "sub_category": "ELSS",
       "risk_grade": "Very High",
-      "cum_return": 553.43,
-      "ann_return": 16.09,
+      "cum_return": 550.88,
+      "ann_return": 16.04,
       "ann_volatility": 15.18,
       "sharpe_ratio": 0.66,
       "max_drawdown": -33.51
@@ -36,9 +36,9 @@
       "category": "Hybrid Scheme",
       "sub_category": "Aggressive Hybrid Fund",
       "risk_grade": "Very High",
-      "cum_return": 353.02,
-      "ann_return": 12.76,
-      "ann_volatility": 14.29,
+      "cum_return": 352.64,
+      "ann_return": 12.74,
+      "ann_volatility": 14.28,
       "sharpe_ratio": 0.49,
       "max_drawdown": -33.56
     },
@@ -50,8 +50,8 @@
       "category": "Debt Scheme",
       "sub_category": "Money Market Fund",
       "risk_grade": "Moderate",
-      "cum_return": 138.86,
-      "ann_return": 7.16,
+      "cum_return": 139.05,
+      "ann_return": 7.17,
       "ann_volatility": 0.61,
       "sharpe_ratio": 1.51,
       "max_drawdown": -1.39
@@ -64,10 +64,10 @@
       "category": "Other Scheme",
       "sub_category": "FoF Domestic",
       "risk_grade": "Very High",
-      "cum_return": 600.2,
-      "ann_return": 16.73,
+      "cum_return": 596.29,
+      "ann_return": 16.66,
       "ann_volatility": 9.63,
-      "sharpe_ratio": 1.03,
+      "sharpe_ratio": 1.02,
       "max_drawdown": -22.83
     },
     {
@@ -78,9 +78,9 @@
       "category": "Equity Scheme",
       "sub_category": "Large Cap Fund",
       "risk_grade": "Very High",
-      "cum_return": 603.65,
-      "ann_return": 16.77,
-      "ann_volatility": 16.45,
+      "cum_return": 601.4,
+      "ann_return": 16.73,
+      "ann_volatility": 16.44,
       "sharpe_ratio": 0.66,
       "max_drawdown": -39.96
     },
@@ -92,8 +92,8 @@
       "category": "Equity Scheme",
       "sub_category": "Small Cap Fund",
       "risk_grade": "Very High",
-      "cum_return": 1443.81,
-      "ann_return": 24.3,
+      "cum_return": 1455.03,
+      "ann_return": 24.34,
       "ann_volatility": 15.06,
       "sharpe_ratio": 1.12,
       "max_drawdown": -40.26
@@ -106,9 +106,9 @@
       "category": "Equity Scheme",
       "sub_category": "Mid Cap Fund",
       "risk_grade": "Very High",
-      "cum_return": 674.66,
-      "ann_return": 17.67,
-      "ann_volatility": 15.74,
+      "cum_return": 669.76,
+      "ann_return": 17.59,
+      "ann_volatility": 15.73,
       "sharpe_ratio": 0.73,
       "max_drawdown": -33.43
     }
@@ -4711,7 +4711,11 @@
       "2026-06-16",
       "2026-06-17",
       "2026-06-18",
-      "2026-06-19"
+      "2026-06-19",
+      "2026-06-20",
+      "2026-06-21",
+      "2026-06-22",
+      "2026-06-23"
     ],
     "schemes": {
       "Aditya Birla Sun Life Banking & PSU Debt Fund  - DIRECT - IDCW": [
@@ -9311,7 +9315,11 @@
         10236.9,
         10237.17,
         10242.2,
-        10244.29
+        10244.29,
+        10244.29,
+        10244.29,
+        10250.4,
+        10255.81
       ],
       "Axis ELSS Tax Saver Fund - Direct Plan - Growth Option": [
         10000.0,
@@ -13910,7 +13918,11 @@
         64768.26,
         65083.46,
         65369.92,
-        65342.98
+        65342.98,
+        65342.98,
+        65342.98,
+        65648.32,
+        65087.88
       ],
       "HDFC Hybrid Equity Fund - Growth Option - Direct Plan": [
         10000.0,
@@ -18509,7 +18521,11 @@
         45045.45,
         45198.16,
         45359.71,
-        45302.3
+        45302.3,
+        45302.3,
+        45302.3,
+        45521.62,
+        45264.4
       ],
       "HDFC Money Market Fund - Growth Option - Direct Plan": [
         10000.0,
@@ -23108,7 +23124,11 @@
         23870.3,
         23876.23,
         23881.25,
-        23885.6
+        23885.6,
+        23885.6,
+        23885.6,
+        23899.89,
+        23905.14
       ],
       "Kotak Multi Asset Omni FOF - Direct Growth - Direct": [
         10000.0,
@@ -27707,7 +27727,11 @@
         70050.94,
         70358.62,
         70356.84,
-        70019.77
+        70019.77,
+        70019.77,
+        70019.77,
+        70417.16,
+        69628.96
       ],
       "Nippon India Large Cap Fund - Direct Plan Growth Plan - Growth Option": [
         10000.0,
@@ -32306,7 +32330,11 @@
         69822.1,
         70240.46,
         70510.03,
-        70365.01
+        70365.01,
+        70365.01,
+        70365.01,
+        70772.06,
+        70140.27
       ],
       "SBI Small Cap Fund - Direct Plan - Growth": [
         10000.0,
@@ -36905,7 +36933,11 @@
         151737.44,
         152665.67,
         153526.14,
-        154381.48
+        154381.48,
+        154381.48,
+        154381.48,
+        155947.79,
+        155503.16
       ],
       "quant Mid Cap Fund - Growth Option - Direct Plan": [
         10000.0,
@@ -41504,7 +41536,11 @@
         75516.38,
         75871.21,
         76721.95,
-        77465.9
+        77465.9,
+        77465.9,
+        77465.9,
+        77619.28,
+        76976.33
       ]
     }
   }
