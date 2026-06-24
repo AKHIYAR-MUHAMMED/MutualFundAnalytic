@@ -4,16 +4,16 @@
 
 | Dataset | Rows | Columns | Duplicates | Missing Values | Anomalies (Daily Return > 50%) |
 | --- | --- | --- | --- | --- | --- |
-| axis_bluechip_119092.csv | 3579 | 4 | 0 | None | 1 extreme NAV jumps |
+| axis_bluechip_119092.csv | 3581 | 4 | 0 | None | 1 extreme NAV jumps |
 | fund_master.csv | 8 | 6 | 0 | None | None |
-| hdfc_top_100_125497.csv | 3105 | 4 | 0 | None | None |
-| hdfc_top_100_actual_119062.csv | 3313 | 4 | 0 | None | None |
-| icici_bluechip_120503.csv | 3321 | 4 | 0 | None | 2 extreme NAV jumps |
-| kotak_bluechip_120841.csv | 3315 | 4 | 0 | None | None |
-| nav_history.csv | 26491 | 3 | 0 | None | 3 extreme NAV jumps |
-| nippon_large_cap_118632.csv | 3312 | 4 | 0 | None | None |
-| sbi_bluechip_119551.csv | 3250 | 4 | 0 | None | None |
-| sbi_bluechip_actual_119777.csv | 3296 | 4 | 0 | None | None |
+| hdfc_top_100_125497.csv | 3107 | 4 | 0 | None | None |
+| hdfc_top_100_actual_119062.csv | 3315 | 4 | 0 | None | None |
+| icici_bluechip_120503.csv | 3323 | 4 | 0 | None | 2 extreme NAV jumps |
+| kotak_bluechip_120841.csv | 3317 | 4 | 0 | None | None |
+| nav_history.csv | 26507 | 3 | 0 | None | 3 extreme NAV jumps |
+| nippon_large_cap_118632.csv | 3314 | 4 | 0 | None | None |
+| sbi_bluechip_119551.csv | 3252 | 4 | 0 | None | None |
+| sbi_bluechip_actual_119777.csv | 3298 | 4 | 0 | None | None |
 
 ## 2. Detailed Raw Data Anomalies Identified
 
@@ -29,15 +29,15 @@ The raw anomalies were corrected and saved to the `Data/processed/` folder for d
 
 | Cleaned Dataset | Rows | Columns | Remaining Anomalies | Actions Taken |
 | --- | --- | --- | --- | --- |
-| axis_bluechip_119092.csv | 4919 | 4 | 0 | Multiplied NAV entries before 30-08-2015 by 100 to fix 100x shift. |
-| hdfc_top_100_125497.csv | 4597 | 4 | 0 | Checked / No action needed |
-| hdfc_top_100_actual_119062.csv | 4918 | 4 | 0 | Checked / No action needed |
-| icici_bluechip_120503.csv | 4917 | 4 | 0 | Interpolated zero-NAV on 07-04-2013 using neighboring entries. |
-| kotak_bluechip_120841.csv | 4912 | 4 | 0 | Checked / No action needed |
-| nippon_large_cap_118632.csv | 4917 | 4 | 0 | Checked / No action needed |
-| sbi_bluechip_119551.csv | 4917 | 4 | 0 | Checked / No action needed |
-| sbi_bluechip_actual_119777.csv | 4910 | 4 | 0 | Checked / No action needed |
-| nav_history.csv | 39007 | 3 | 0 | Applied both 100x shift and zero-NAV corrections per scheme. |
+| axis_bluechip_119092.csv | 4923 | 4 | 0 | Multiplied NAV entries before 30-08-2015 by 100 to fix 100x shift. |
+| hdfc_top_100_125497.csv | 4601 | 4 | 0 | Checked / No action needed |
+| hdfc_top_100_actual_119062.csv | 4922 | 4 | 0 | Checked / No action needed |
+| icici_bluechip_120503.csv | 4921 | 4 | 0 | Interpolated zero-NAV on 07-04-2013 using neighboring entries. |
+| kotak_bluechip_120841.csv | 4916 | 4 | 0 | Checked / No action needed |
+| nippon_large_cap_118632.csv | 4921 | 4 | 0 | Checked / No action needed |
+| sbi_bluechip_119551.csv | 4921 | 4 | 0 | Checked / No action needed |
+| sbi_bluechip_actual_119777.csv | 4914 | 4 | 0 | Checked / No action needed |
+| nav_history.csv | 39039 | 3 | 0 | Applied both 100x shift and zero-NAV corrections per scheme. |
 | fund_master.csv | 8 | 6 | 0 | Checked / No action needed |
 
 ## 4. Fund Master Exploration
