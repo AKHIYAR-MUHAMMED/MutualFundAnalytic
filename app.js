@@ -19,6 +19,18 @@ const schemeColors = {
   "quant Mid Cap Fund - Growth Option - Direct Plan": "#a3e635"                // Lime
 };
 
+function getSchemeColor(name) {
+  if (schemeColors[name]) {
+    return schemeColors[name];
+  }
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  return `hsl(${hue}, 70%, 50%)`;
+}
+
 // --- Page Init ---
 document.addEventListener("DOMContentLoaded", () => {
   fetchDashboardData();
@@ -116,7 +128,7 @@ function renderGrowthChart() {
   const filtered = getFilteredGrowthData();
   
   const datasets = Object.entries(filtered.schemes).map(([name, values]) => {
-    const color = schemeColors[name] || "#ffffff";
+    const color = getSchemeColor(name);
     const shortName = name.split(" - ")[0];
     return {
       label: shortName,
@@ -202,7 +214,7 @@ function renderRiskChart() {
   const metrics = dashboardData.metrics;
   
   const datasets = metrics.map(m => {
-    const color = schemeColors[m.name] || "#ffffff";
+    const color = getSchemeColor(m.name);
     return {
       label: m.short_name,
       data: [{ x: m.ann_volatility, y: m.ann_return }],
@@ -273,7 +285,7 @@ function populateFundList() {
   const sorted = [...dashboardData.metrics].sort((a, b) => b.ann_return - a.ann_return);
   
   sorted.forEach(m => {
-    const color = schemeColors[m.name] || "#ffffff";
+    const color = getSchemeColor(m.name);
     const item = document.createElement("div");
     item.className = "fund-mini-item";
     
