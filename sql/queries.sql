@@ -1,16 +1,17 @@
--- 1. Top 5 funds by AUM
+-- 1. Top 5 funds by AUM (Latest available date to prevent double-counting historical entries)
 SELECT df.scheme_code, df.scheme_name, fa.aum_amount AS aum_crores
 FROM fact_aum fa
 JOIN dim_fund df ON fa.scheme_code = df.scheme_code
+WHERE fa.date_key = (SELECT MAX(date_key) FROM fact_aum)
 ORDER BY fa.aum_amount DESC
 LIMIT 5;
 
--- 2. Average NAV per month for each scheme
-SELECT df.scheme_name, dd.year, dd.month, AVG(fn.nav) AS avg_nav
+-- 2. Average NAV per month for each scheme (Standard SQL compliant grouping)
+SELECT df.scheme_code, df.scheme_name, dd.year, dd.month, AVG(fn.nav) AS avg_nav
 FROM fact_nav fn
 JOIN dim_fund df ON fn.scheme_code = df.scheme_code
 JOIN dim_date dd ON fn.date_key = dd.date_key
-GROUP BY df.scheme_code, dd.year, dd.month
+GROUP BY df.scheme_code, df.scheme_name, dd.year, dd.month
 ORDER BY df.scheme_name, dd.year, dd.month;
 
 -- 3. SIP Year-over-Year (YoY) growth
@@ -69,7 +70,11 @@ SELECT
     dd.month,
     SUM(CASE WHEN ft.transaction_type IN ('SIP', 'Lumpsum') THEN ft.amount ELSE 0 END) AS total_inflow,
     SUM(CASE WHEN ft.transaction_type = 'Redemption' THEN ft.amount ELSE 0 END) AS total_outflow,
-    SUM(CASE WHEN ft.transaction_type IN ('SIP', 'Lumpsum') THEN ft.amount ELSE -ft.amount END) AS net_flow
+    SUM(CASE 
+        WHEN ft.transaction_type IN ('SIP', 'Lumpsum') THEN ft.amount 
+        WHEN ft.transaction_type = 'Redemption' THEN -ft.amount 
+        ELSE 0 
+    END) AS net_flow
 FROM fact_transactions ft
 JOIN dim_date dd ON ft.date_key = dd.date_key
 GROUP BY dd.year, dd.month

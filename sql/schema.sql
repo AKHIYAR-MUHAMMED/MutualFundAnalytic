@@ -110,7 +110,10 @@ CREATE TABLE IF NOT EXISTS fact_aum_growth (
     aum_lakh_cr REAL NOT NULL CHECK (aum_lakh_cr >= 0)
 );
 
--- 12. Indexes for new tables
+-- 12. Indexes for new tables and optimization
 CREATE INDEX IF NOT EXISTS idx_fact_holdings_scheme ON fact_holdings(scheme_code);
 CREATE INDEX IF NOT EXISTS idx_fact_aum_growth_house_year ON fact_aum_growth(fund_house, year);
+CREATE INDEX IF NOT EXISTS idx_fact_tx_type_date ON fact_transactions(transaction_type, date_key, amount);
+CREATE INDEX IF NOT EXISTS idx_fact_tx_state_amount ON fact_transactions(state, amount);
+CREATE INDEX IF NOT EXISTS idx_fact_tx_kyc ON fact_transactions(kyc_status);
 
