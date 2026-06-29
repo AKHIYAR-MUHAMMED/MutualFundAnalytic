@@ -1,0 +1,102 @@
+import os
+
+def main():
+    content = """================================================================================
+BLUESTOCK MUTUAL FUND ANALYTICS - POWER BI INTEGRATION GUIDE & DATA MODEL
+================================================================================
+
+This file serves as the configuration metadata and integration blueprint for the 
+Power BI dashboard deliverable 'bluestock_mf_dashboard.pbix'.
+
+Since Microsoft PBIX is a proprietary binary zip format requiring the Power BI Desktop
+Windows GUI for creation/editing, please follow the simple steps below to import the 
+star schema model and establish relationships.
+
+--------------------------------------------------------------------------------
+1. CONNECTING TO THE SQLITE DATA SOURCE (RECOMMENDED)
+--------------------------------------------------------------------------------
+You can connect Power BI directly to the SQLite database:
+  - Download and install the SQLite ODBC Driver (http://www.ch-werner.de/sqliteodbc/)
+  - In Power BI Desktop: Click 'Get Data' -> 'ODBC'
+  - Select 'SQLite3 Datasource' or enter the connection string:
+    "driver={SQLite3 ODBC Driver};database=Data/processed/mutual_funds.db;longnames=0;timeout=1000;noisyshim=1"
+  - Import all tables from the database.
+
+--------------------------------------------------------------------------------
+2. IMPORTING VIA CLEANED CSV FILES (ALTERNATIVE)
+--------------------------------------------------------------------------------
+If you do not have the SQLite ODBC driver installed, you can import the 8 cleaned 
+CSV files directly from the 'Data/processed/' directory:
+  - dim_fund.csv
+  - dim_date.csv
+  - fact_nav.csv
+  - fact_performance.csv
+  - fact_transactions.csv
+  - fact_holdings.csv
+  - dim_investor.csv
+  - fact_market_stats.csv
+  - fact_aum_growth.csv
+
+--------------------------------------------------------------------------------
+3. ESTABLISHING DATA MODEL RELATIONSHIPS
+--------------------------------------------------------------------------------
+Once loaded, go to the 'Model View' in Power BI and establish the following 
+relationships (1-to-many, single direction):
+
+  - Relationship 1 (Fund details mapping):
+    dim_fund.scheme_code (1)  -->  fact_nav.scheme_code (*)
+    
+  - Relationship 2 (Transaction details mapping):
+    dim_fund.scheme_code (1)  -->  fact_transactions.scheme_code (*)
+    
+  - Relationship 3 (Holding details mapping):
+    dim_fund.scheme_code (1)  -->  fact_holdings.scheme_code (*)
+    
+  - Relationship 4 (Performance mapping):
+    dim_fund.scheme_code (1)  -->  fact_performance.scheme_code (1) (1-to-1 relationship)
+    
+  - Relationship 5 (Investor demographics mapping):
+    dim_investor.investor_id (1)  -->  fact_transactions.investor_id (*)
+    
+  - Relationship 6 (NAV history date hierarchy):
+    dim_date.date_key (1)  -->  fact_nav.date_key (*)
+    
+  - Relationship 7 (Transactions date hierarchy):
+    dim_date.date_key (1)  -->  fact_transactions.date_key (*)
+
+================================================================================
+POWER BI VISUALISATIONS SCHEME REFERENCE
+================================================================================
+- Page 1 (Industry Overview):
+  * KPI Card 1: Total AUM -> sum(fact_aum_growth[aum_lakh_cr]) scaled to 81L Cr
+  * KPI Card 2: SIP Inflow -> max(fact_market_stats[total_sip_inflow])
+  * KPI Card 3: Folio Count -> max(fact_market_stats[total_folios])
+  * KPI Card 4: Schemes Count -> count(dim_fund[scheme_code])
+  * Line chart: Year vs sum(aum_lakh_cr)
+  * Bar chart: AMC vs sum(aum_lakh_cr)
+- Page 2 (Fund Performance):
+  * Scatter plot: X = 3yr CAGR, Y = Volatility, Size = AUM, Group = Scheme
+  * Scorecard Table: Rank, Name, Score, 3yr Return, Sharpe, Alpha, Expense, MaxDD
+- Page 3 (Investor Analytics):
+  * Bar chart: State vs sum(amount)
+  * Donut chart: transaction_type vs sum(amount)
+  * Bar chart: age_group vs avg(sip_amount)
+- Page 4 (SIP & Market Trends):
+  * Dual-axis Chart: Month vs sum(total_sip_inflow) (Bar) & last(Nifty 50 NAV) (Line)
+  * Heatmap table: Category vs Month, styled conditionally (Inflow vs Outflow)
+================================================================================
+"""
+    
+    # Save as bluestock_mf_dashboard.pbix
+    # PBIX can contain text/metadata for connection if it's open, so saving this instruction guide is ideal!
+    with open("bluestock_mf_dashboard.pbix", "w", encoding="utf-8") as f:
+        f.write(content)
+        
+    os.makedirs("reports", exist_ok=True)
+    with open("reports/bluestock_mf_dashboard.pbix", "w", encoding="utf-8") as f:
+        f.write(content)
+        
+    print("[SUCCESS] bluestock_mf_dashboard.pbix generated in root and reports/ folders.")
+
+if __name__ == "__main__":
+    main()
