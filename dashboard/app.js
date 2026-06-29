@@ -27,6 +27,7 @@ let charts = {};
 
 // Scheme Color Mapping Hashing
 function getSchemeColor(name) {
+  if (!name) return "#8e9cae";
   const customColors = {
     "Nifty 100 Benchmark": "#8e9cae",
     "Nifty 50 Benchmark": "#ef4444",
@@ -398,7 +399,7 @@ function updatePerformancePageCharts() {
   // 1. Bubble Plot
   const ctxScatter = document.getElementById("perfScatterChart").getContext("2d");
   const bubbleData = filtered.map(m => {
-    const color = getSchemeColor(m.name);
+    const color = getSchemeColor(m.scheme_name);
     const size = Math.max(4, Math.min(22, (m.aum / 35000) * 18 + 4));
     return {
       label: m.short_name,
@@ -542,7 +543,7 @@ function renderNavBenchmarkChart() {
   const startIdx = dates.indexOf("2024-01-01");
   const slicedDates = dates.slice(startIdx);
   
-  const fundRaw = rawData.growth.schemes[fund.scheme_name].slice(startIdx);
+  const fundRaw = rawData.growth.schemes[fund.scheme_code].slice(startIdx);
   const n100Raw = rawData.benchmarks.nifty100.slice(startIdx);
   const n50Raw = rawData.benchmarks.nifty50.slice(startIdx);
   
@@ -1136,7 +1137,7 @@ function renderDrilldownPage(container) {
   
   const ctxDrill = document.getElementById("drillFullChart").getContext("2d");
   const dates = rawData.growth.dates;
-  const fundRaw = rawData.growth.schemes[fund.scheme_name];
+  const fundRaw = rawData.growth.schemes[fund.scheme_code];
   const n100Raw = rawData.benchmarks.nifty100;
   const n50Raw = rawData.benchmarks.nifty50;
   
